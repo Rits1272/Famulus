@@ -6,6 +6,7 @@ from predictor import predict1
 import json
 import ast
 import datetime
+import os
 from multiprocessing.pool import ThreadPool
 from extractTicker import stock_graph
 from news_scraper import scraper
@@ -14,7 +15,7 @@ from app_helper import pre, valid_time
 
 app = Flask(__name__)
 CORS(app, supports_credentials=True)
-app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///data.sqlite3'
+app.config['SQLALCHEMY_DATABASE_URI'] = os.environ['SQLALCHEMY']
 app.config.from_object(__name__)
 db = SQLAlchemy(app)
 
@@ -30,8 +31,7 @@ class QueryModel(db.Model):
 
 @app.route('/news', methods=['GET'])
 def sentiment_analyzer():
-    ''' Returns the change in value in interval of days. '''
-
+    """Returns the change in value in interval of days."""
     query = request.args.get('query', type=str)
 
     if query is None:
@@ -42,6 +42,8 @@ def sentiment_analyzer():
     if item is not None:
         if valid_time(item.time):
             return json.dumps({"predict": ast.literal_eval(item.list_predicted)})
+        else:
+            db.session.delete(item)
 
     query = query.replace("%20", " ")
     list_predicted = {}
@@ -106,6 +108,7 @@ def graph():
         return stock_graph(query,
                            graph_pre).graph()
     except Exception as e:
+        print(e)
         return Response("{'message': '"+str(e)+"'}", status=404)
 
 
@@ -131,5 +134,5 @@ def get_summary():
 
 
 if __name__ == '__main__':
-    db.create_all() # pragma: no cover
-    app.run() # pragma: no cover
+    db.create_all()                                 # pragma: no cover
+    app.run(debug=True, use_reloader=False)         # pragma: no cover

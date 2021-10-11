@@ -21,7 +21,7 @@ class socketCases(unittest.TestCase):
     def test_invalidTicker(self):
         self.client = TestClient(app)
         with self.client.websocket_connect("/ws") as ws:
-            ws.send_text("google")
+            ws.send_text("narendramodi")
             data = ws.receive_json()
             assert 'brand' in data['message']
 

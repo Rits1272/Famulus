@@ -1,6 +1,7 @@
 import unittest
 from app import db, app
 import json
+import time
 
 class endpointsCase(unittest.TestCase):
 
@@ -56,9 +57,14 @@ class endpointsCase(unittest.TestCase):
     def test_response_object(self):
         try:
             self.checkResponse(json.loads(self.app.get("/news?query=Tesla").data))
-        except Exception as e: # pragma: no cover
-            self.fail(msg="Response format is invalid: " + str(e)) # pragma: no cover
+        except Exception as e:                                          # pragma: no cover
+            self.fail(msg="Response format is invalid: " + str(e))      # pragma: no cover
 
     def test_invalid_ticker(self):
-        self.assertEqual(self.app.get("/news?query=google").status_code, 200)
-        self.assertEqual(self.app.get("/stock-graph?query=google").status_code, 404)
+        self.assertEqual(self.app.get("/news?query=narendramodi").status_code, 200)
+        self.assertEqual(self.app.get("/stock-graph?query=narendramodi").status_code, 404)
+
+    def test_timeout_query(self):
+        self.assertEqual(self.app.get("/news?query=tesla").status_code, 200)
+        time.sleep(6*60)
+        self.assertEqual(self.app.get("/news?query=tesla").status_code, 200)
